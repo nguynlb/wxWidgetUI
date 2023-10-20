@@ -1,76 +1,96 @@
 #include <wx/wx.h>
 
-class MyApp : public wxApp
+class AppGui : public wxApp
 {
 public:
     virtual bool OnInit();
 };
 
-wxIMPLEMENT_APP(MyApp);
+wxIMPLEMENT_APP(AppGui);
 
-class MyFrame : public wxFrame
+class MainFrame : public wxFrame
 {
 public:
-    MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size);
+    MainFrame(const wxString &title, const wxPoint &pos, const wxSize &size);
 
 private:
-    wxStaticBitmap *staticBitmap;
-    wxStaticText *textView;
-    wxImage image;
-
-    void OnLoadImage(wxCommandEvent &event);
-    void UpdateImage(const wxImage &image);
+    wxBoxSizer *MainSizer = nullptr;
+    wxBoxSizer *LeftSizer = nullptr;
+    wxBoxSizer *RightSizer = nullptr;
 };
 
-MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
+MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(nullptr, wxID_ANY, title, pos, size)
 {
-    wxInitAllImageHandlers();
+    auto PRIMARY_BUTTON_SIZE = wxSize(256, 64);
+    auto USER_IMAGE_SIZE = wxSize(128, 128);
+    auto PANEL_LEFT_SIZE = wxSize(256, 860);
+    auto PANEL_RIGHT_SIZE = wxSize(1184, 860);
+    auto PRIMARY_COLOR_1 = wxColour(100, 100, 200);
+    auto PRIMARY_COLOR_2 = wxColour(100, 200, 100);
+    auto SECONDARY_COLOR_1 = wxColour(100, 100, 100);
+    auto SECONDARY_COLOR_2 = wxColour(100, 100, 50);
 
-    auto sizer = new wxBoxSizer(wxVERTICAL);
+    auto LeftMainPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, PANEL_LEFT_SIZE);
+    auto ButtonTop = new wxButton(LeftMainPanel, wxID_ANY, ("Click me!"), wxDefaultPosition, PRIMARY_BUTTON_SIZE);
+    auto ButtonLeft = new wxButton(LeftMainPanel, wxID_ANY, ("Ok Cool right"), wxDefaultPosition, PRIMARY_BUTTON_SIZE);
 
-    textView = new wxStaticText(this, wxID_ANY, "Here is your image: ");
-    staticBitmap = new wxStaticBitmap(this, wxID_ANY, wxBitmap(wxSize(1, 1)), wxDefaultPosition, FromDIP(wxSize(500, 500)));
-    staticBitmap->SetScaleMode(wxStaticBitmap::Scale_None);
+    LeftMainPanel->SetBackgroundColour(PRIMARY_COLOR_1);
+    ButtonTop->SetBackgroundColour(SECONDARY_COLOR_1);
+    ButtonLeft->SetBackgroundColour(SECONDARY_COLOR_2);
 
-    auto image_btn = new wxButton(this, wxID_ANY, "Load Image...");
-    image_btn->Bind(wxEVT_BUTTON, &MyFrame::OnLoadImage, this);
+    auto RightMainPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, PANEL_RIGHT_SIZE);
+    RightMainPanel->SetBackgroundColour(PRIMARY_COLOR_2);
 
-    auto sizer_btn = new wxBoxSizer(wxHORIZONTAL);
-    sizer_btn->Add(image_btn, 0, wxLEFT, FromDIP(5));
+    MainSizer = new wxBoxSizer(wxHORIZONTAL);
+    MainSizer->Add(LeftMainPanel, 0, wxEXPAND, 0);
+    MainSizer->Add(RightMainPanel, 1, wxEXPAND, 0);
 
-    sizer->Add(textView, 0, wxALIGN_CENTER | wxALL, FromDIP(10));
-    sizer->Add(staticBitmap, 1, wxALL, FromDIP(10));
-    sizer->Add(sizer_btn, 0, wxALIGN_CENTER | wxALL, FromDIP(10));
+    LeftSizer = new wxBoxSizer(wxVERTICAL);
+    LeftSizer->Add(ButtonTop, 0, wxEXPAND | wxALL, FromDIP(15));
+    LeftSizer->Add(ButtonLeft, 0, wxEXPAND | wxALL, FromDIP(15));
 
-    this->SetSizer(sizer);
+    LeftMainPanel->SetSizerAndFit(LeftSizer);
+
+    // MainSizer->Add(LeftSizer, 0, wxEXPAND);
+    // MainSizer->Add(RightSizer, 1, wxEXPAND);
+
+    auto InnerRightPanel = new wxPanel(RightMainPanel, wxID_ANY, wxDefaultPosition, USER_IMAGE_SIZE);
+    RightSizer = new wxBoxSizer(wxVERTICAL);
+    InnerRightPanel->SetBackgroundColour(wxColour(200, 100, 100));
+
+    auto text_name = new wxStaticText(RightMainPanel, wxID_ANY, "ADMIN");
+    RightSizer->Add(text_name, 0, wxALIGN_RIGHT | wxALL, FromDIP(50));
+
+    RightSizer->Add(InnerRightPanel, 0, wxALIGN_RIGHT | wxALL, FromDIP(50));
+    RightMainPanel->SetSizer(RightSizer);
+
+    MainSizer->SetSizeHints(this);
+    this->SetBackgroundColour(wxColour(0, 0, 0));
+    this->SetSizer(MainSizer);
+    this->Center();
 }
 
-void MyFrame::OnLoadImage(wxCommandEvent &event)
+bool AppGui::OnInit()
 {
-    wxFileDialog dialog(this, "Load your image", "", "",
-                        "Image Files (*.png, *.jpg, *.jpeg, *.bmp)|*.png;*.jpg;*.jpeg;*.bmp",
-                        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    MainFrame *mainFrame = new MainFrame("Remote Desktop App", wxDefaultPosition, wxDefaultSize);
+    mainFrame->Show();
 
-    if (dialog.ShowModal() == wxID_CANCEL)
-        return;
-
-    if (!image.LoadFile(dialog.GetPath()))
-    {
-        wxMessageBox("Failed to load image", "Error", wxOK | wxICON_ERROR);
-        return;
-    }
-    UpdateImage(image);
-}
-
-bool MyApp::OnInit()
-{
-    (new MyFrame("Remote Desktop", wxDefaultPosition, wxDefaultSize))->Show();
     return true;
 }
 
-void MyFrame::UpdateImage(const wxImage &image)
-{
-    staticBitmap->SetBitmap(wxBitmap(image));
-    this->Layout();
-}
+// class PannelButton : public wxPanel
+// {
+// public:
+//     PannelButton();
+
+// private:
+//     wxButton *button = nullptr;
+// };
+
+// PannelButton::PannelButton()
+// {
+//     button = new wxButton(this, wxID_ANY, "Click Me!");
+
+//     // this->Add(button);
+// }
