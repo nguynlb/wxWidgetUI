@@ -1,97 +1,108 @@
 #include <wx/wx.h>
+#include <wx/bitmap.h>
+#include <wx/timer.h>
 
-class AppGui : public wxApp
+class CaptureFrame : public wxFrame
 {
 public:
-    virtual bool OnInit();
-};
-
-wxIMPLEMENT_APP(AppGui);
-
-class MainFrame : public wxFrame
-{
-public:
-    MainFrame(const wxString &title, const wxPoint &pos, const wxSize &size);
+    CaptureFrame(const wxString &title, const wxPoint &pos, const wxSize &size);
 
 private:
-    wxBoxSizer *MainSizer = nullptr;
-    wxBoxSizer *LeftSizer = nullptr;
-    wxBoxSizer *RightSizer = nullptr;
+    const int DELAY_MS = 20;
+    bool CAPTURING = false;
+
+    wxPanel *CapturePanel = nullptr;
+    wxPanel *ButtonPanel = nullptr;
+
+    wxButton *startCaptureBtn = nullptr;
+    wxButton *stopCaptureBtn = nullptr;
+
+    wxTimer *timer;
+
+    void OnCaptureScreen(wxTimerEvent &);
+
+    void OnStartPress(wxCommandEvent &);
+    void OnStopPress(wxCommandEvent &);
 };
 
-MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
+CaptureFrame::CaptureFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(nullptr, wxID_ANY, title, pos, size)
 {
-    auto PRIMARY_BUTTON_SIZE = wxSize(256, 64);
-    auto USER_IMAGE_SIZE = wxSize(128, 128);
-    auto PANEL_LEFT_SIZE = wxSize(256, 860);
-    auto PANEL_RIGHT_SIZE = wxSize(1184, 860);
-    auto PRIMARY_COLOR_1 = wxColour(100, 100, 200);
-    auto PRIMARY_COLOR_2 = wxColour(100, 200, 100);
-    auto SECONDARY_COLOR_1 = wxColour(100, 100, 100);
-    auto SECONDARY_COLOR_2 = wxColour(100, 100, 50);
+    CapturePanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(1024, 696));
+    CapturePanel->SetBackgroundColour(wxColor(38, 37, 54));
+    ButtonPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    ButtonPanel->SetBackgroundColour(wxColor(52, 51, 62));
 
-    auto LeftMainPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, PANEL_LEFT_SIZE);
-    auto ButtonTop = new wxButton(LeftMainPanel, wxID_ANY, ("Click me!"), wxDefaultPosition, PRIMARY_BUTTON_SIZE);
-    auto ButtonLeft = new wxButton(LeftMainPanel, wxID_ANY, ("Ok Cool right"), wxDefaultPosition, PRIMARY_BUTTON_SIZE);
+    wxBoxSizer *MainSizer = new wxBoxSizer(wxVERTICAL);
+    MainSizer->Add(CapturePanel, 1, wxEXPAND, 0);
+    MainSizer->Add(ButtonPanel, 0, wxEXPAND, 0);
 
-    LeftMainPanel->SetBackgroundColour(PRIMARY_COLOR_1);
-    ButtonTop->SetBackgroundColour(SECONDARY_COLOR_1);
-    ButtonLeft->SetBackgroundColour(SECONDARY_COLOR_2);
+    startCaptureBtn = new wxButton(ButtonPanel, wxID_ANY, "Start Capture");
+    stopCaptureBtn = new wxButton(ButtonPanel, wxID_ANY, "Stop Capture");
+    this->Bind(wxEVT_BUTTON, &CaptureFrame::OnStartPress, this, startCaptureBtn->GetId());
+    this->Bind(wxEVT_BUTTON, &CaptureFrame::OnStopPress, this, stopCaptureBtn->GetId());
 
-    auto RightMainPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, PANEL_RIGHT_SIZE);
-    RightMainPanel->SetBackgroundColour(PRIMARY_COLOR_2);
+    wxBoxSizer *ButtonSizer = new wxBoxSizer(wxHORIZONTAL);
+    ButtonSizer->Add(startCaptureBtn, 0, wxALIGN_CENTER | wxALL, FromDIP(10));
+    ButtonSizer->Add(stopCaptureBtn, 0, wxALIGN_CENTER | wxALL, FromDIP(10));
+    ButtonPanel->SetSizer(ButtonSizer);
 
-    MainSizer = new wxBoxSizer(wxHORIZONTAL);
-    MainSizer->Add(LeftMainPanel, 0, wxEXPAND, 0);
-    MainSizer->Add(RightMainPanel, 1, wxEXPAND, 0);
+    timer = new wxTimer(this, wxID_ANY);
+    this->Bind(wxEVT_TIMER, &CaptureFrame::OnCaptureScreen, this);
 
-    LeftSizer = new wxBoxSizer(wxVERTICAL);
-    LeftSizer->Add(ButtonTop, 0, wxEXPAND | wxALL, FromDIP(15));
-    LeftSizer->Add(ButtonLeft, 0, wxEXPAND | wxALL, FromDIP(15));
-
-    LeftMainPanel->SetSizerAndFit(LeftSizer);
-
-    // MainSizer->Add(LeftSizer, 0, wxEXPAND);
-    // MainSizer->Add(RightSizer, 1, wxEXPAND);
-
-    auto InnerRightPanel = new wxPanel(RightMainPanel, wxID_ANY, wxDefaultPosition, USER_IMAGE_SIZE);
-    RightSizer = new wxBoxSizer(wxVERTICAL);
-    InnerRightPanel->SetBackgroundColour(wxColour(200, 100, 100));
-
-    RightSizer->Add(InnerRightPanel, 0, wxALIGN_RIGHT | wxALL, FromDIP(50));
-    RightMainPanel->SetSizer(RightSizer);
-
-    auto GridUserPanel = new wxPanel(RightMainPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    GridUserPanel->SetBackgroundColour(PRIMARY_COLOR_2);
-    RightSizer->Add(InnerRightPanel, 0, wxEXPAND | wxALL, FromDIP(10));
-
-    MainSizer->SetSizeHints(this);
-    this->SetBackgroundColour(wxColour(0, 0, 0));
-    this->SetSizer(MainSizer);
+    this->SetSizerAndFit(MainSizer);
     this->Center();
 }
 
-bool AppGui::OnInit()
+void CaptureFrame::OnStartPress(wxCommandEvent &e)
 {
-    MainFrame *mainFrame = new MainFrame("Remote Desktop App", wxDefaultPosition, wxDefaultSize);
-    mainFrame->Show();
+    CAPTURING = true;
+    timer->Start(DELAY_MS);
+}
+
+void CaptureFrame::OnStopPress(wxCommandEvent &e)
+{
+    CAPTURING = false;
+    timer->Stop();
+    wxClientDC clientDC(CapturePanel);
+    clientDC.Clear();
+}
+
+void CaptureFrame::OnCaptureScreen(wxTimerEvent &e)
+{
+    if (CAPTURING)
+    {
+        wxScreenDC screenDC;
+        // Capture Screen
+        wxRect frameRect = CapturePanel->GetRect();
+        wxBitmap screenshot(frameRect.GetSize());
+
+        wxMemoryDC memDC(screenshot);
+        memDC.Blit(0, 0, frameRect.width, frameRect.height, &screenDC, frameRect.x, frameRect.y);
+        memDC.SelectObject(wxNullBitmap);
+
+        // Update Screen
+        wxClientDC clientDC(CapturePanel);
+        clientDC.Clear();
+        clientDC.DrawBitmap(screenshot, 0, 0, false);
+    }
+}
+
+class CaptureApp : public wxApp
+{
+public:
+    virtual bool OnInit();
+
+private:
+    CaptureFrame *MainFrame;
+};
+
+bool CaptureApp::OnInit()
+{
+    MainFrame = new CaptureFrame("Remote Desktop", wxDefaultPosition, wxDefaultSize);
+    MainFrame->Show();
 
     return true;
 }
 
-// class PannelButton : public wxPanel
-// {
-// public:
-//     PannelButton();
-
-// private:
-//     wxButton *button = nullptr;
-// };
-
-// PannelButton::PannelButton()
-// {
-//     button = new wxButton(this, wxID_ANY, "Click Me!");
-
-//     // this->Add(button);
-// }
+wxIMPLEMENT_APP(CaptureApp);

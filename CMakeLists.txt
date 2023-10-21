@@ -12,6 +12,7 @@ set(STAGED_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/stage)
 
 add_subdirectory(thirdparty)
 
+
 include(ExternalProject)
 ExternalProject_Add(${PROJECT_NAME}_core
   DEPENDS
@@ -30,3 +31,4 @@ ExternalProject_Add(${PROJECT_NAME}_core
   INSTALL_COMMAND
   ""
 )
+
