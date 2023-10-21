@@ -59,11 +59,12 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
     RightSizer = new wxBoxSizer(wxVERTICAL);
     InnerRightPanel->SetBackgroundColour(wxColour(200, 100, 100));
 
-    auto text_name = new wxStaticText(RightMainPanel, wxID_ANY, "ADMIN");
-    RightSizer->Add(text_name, 0, wxALIGN_RIGHT | wxALL, FromDIP(50));
-
     RightSizer->Add(InnerRightPanel, 0, wxALIGN_RIGHT | wxALL, FromDIP(50));
     RightMainPanel->SetSizer(RightSizer);
+
+    auto GridUserPanel = new wxPanel(RightMainPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    GridUserPanel->SetBackgroundColour(PRIMARY_COLOR_2);
+    RightSizer->Add(InnerRightPanel, 0, wxEXPAND | wxALL, FromDIP(10));
 
     MainSizer->SetSizeHints(this);
     this->SetBackgroundColour(wxColour(0, 0, 0));
