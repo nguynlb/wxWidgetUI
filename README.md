@@ -1,10 +1,10 @@
-# wx_cmake_template
+# wx_cmake_template - Use template of author : [JustDevTutorial](https://www.youtube.com/@lukesdevtutorials)
 
 A template for multiplatform wxWidgets projects using CMake
 
 ## How this works
 
-This template searches for the wxWidgets library using `FindPackage`. If not found, it downloads the library source from GitHub, compiles it, and links it with the main project. 
+This template searches for the wxWidgets library using `FindPackage`. If not found, it downloads the library source from GitHub, compiles it, and links it with the main project.
 
 The super build pattern with `ExternalProject_Add` is used to achieve this.
 
@@ -37,9 +37,8 @@ This will create a copy of the template's directory structure in `directory`, re
 
 ## Notes
 
-For details, see the [blog post](https://www.justdevtutorials.com/post/wxwidgets-cmake/) and the [video](https://www.youtube.com/watch?v=MfuBS9n5_aY) tutorial showcasing the installation on Linux, Windows, and Mac OS X. 
+For details, see the [blog post](https://www.justdevtutorials.com/post/wxwidgets-cmake/) and the [video](https://www.youtube.com/watch?v=MfuBS9n5_aY) tutorial showcasing the installation on Linux, Windows, and Mac OS X.
 
 ---
-Check out the blog for more! [www.justdevtutorials.com](https://www.justdevtutorials.com)
----
 
+## Check out the blog for more! [www.justdevtutorials.com](https://www.justdevtutorials.com)
